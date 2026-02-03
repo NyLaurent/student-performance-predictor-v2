@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Predict Student Performance</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 600px;
+            width: 100%;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 35px;
+        }
+
+        h2 {
+            color: #667eea;
+            font-size: 2.2em;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 1em;
+        }
+
+        .back-link {
+            display: inline-block;
+            color: #667eea;
+            text-decoration: none;
+            margin-bottom: 20px;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        .back-link:hover {
+            color: #764ba2;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label { 
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+            font-size: 0.95em;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        input, select { 
+            width: 100%; 
+            padding: 14px 16px; 
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 15px;
+            transition: all 0.3s ease;
+            background: #f8f9fa;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        input::placeholder {
+            color: #aaa;
+        }
+
+        button { 
+            width: 100%;
+            padding: 16px; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white; 
+            border: none; 
+            cursor: pointer;
+            font-size: 17px;
+            font-weight: bold;
+            border-radius: 12px;
+            margin-top: 10px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        button:hover { 
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled { 
+            background: linear-gradient(135deg, #ccc 0%, #999 100%);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .result { 
+            margin-top: 30px; 
+            padding: 25px;
+            border-radius: 12px;
+            font-size: 15px;
+            display: none;
+            animation: fadeIn 0.4s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .result.show { display: block; }
+
+        .result-success {
+            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+            border: 2px solid #28a745;
+            color: #155724;
+        }
+
+        .result-error {
+            background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+            border: 2px solid #dc3545;
+            color: #721c24;
+        }
+
+        .result-warning {
+            background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+            border: 2px solid #ffc107;
+            color: #856404;
+        }
+
+        .result-info {
+            background: linear-gradient(135deg, #d1ecf1 0%, #bee5eb 100%);
+            border: 2px solid #17a2b8;
+            color: #0c5460;
+        }
+
+        .result-title {
+            font-weight: bold;
+            font-size: 20px;
+            margin-bottom: 12px;
+        }
+
+        .result-reason {
+            font-style: italic;
+            margin-top: 12px;
+            opacity: 0.9;
+            font-size: 14px;
+        }
+
+        .prediction-value {
+            font-size: 36px;
+            font-weight: bold;
+            color: #28a745;
+            margin: 20px 0;
+            text-align: center;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .loader {
+            display: none;
+            text-align: center;
+            margin-top: 20px;
+            font-size: 16px;
+            color: #667eea;
+            font-weight: 500;
+        }
+
+        .loader.show { 
+            display: block;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .input-hint {
+            font-size: 12px;
+            color: #888;
+            margin-top: 4px;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 30px 20px;
+            }
+            
+            h2 {
+                font-size: 1.8em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/" class="back-link">← Back to Home</a>
+        
+        <div class="header">
+            <h2>🎓 Performance Predictor</h2>
+            <p class="subtitle">Enter your academic details below</p>
+        </div>
+        <form id="performanceForm">
+            <div class="form-group">
+                <label>📚 Hours Studied (per day)</label>
+                <input type="number" id="hours_studied" name="hours_studied" min="0" max="24" step="0.1" placeholder="e.g., 5.5" required>
+                <div class="input-hint">Range: 0-24 hours</div>
+            </div>
+
+            <div class="form-group">
+                <label>📊 Previous Scores</label>
+                <input type="number" id="previous_scores" name="previous_scores" min="0" max="100" placeholder="e.g., 75" required>
+                <div class="input-hint">Range: 0-100</div>
+            </div>
+
+            <div class="form-group">
+                <label>🎯 Extracurricular Activities</label>
+                <select id="extracurricular" name="extracurricular">
+                    <option value="true">Yes</option>
+                    <option value="false">No</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>😴 Sleep Hours (per day)</label>
+                <input type="number" id="sleep_hours" name="sleep_hours" min="0" max="24" step="0.1" placeholder="e.g., 7" required>
+                <div class="input-hint">Range: 0-24 hours</div>
+            </div>
+
+            <div class="form-group">
+                <label>📝 Sample Papers Practiced</label>
+                <input type="number" id="sample_papers" name="sample_papers" min="0" placeholder="e.g., 5" required>
+                <div class="input-hint">Range: 0-50 papers</div>
+            </div>
+
+            <button type="submit" id="submitBtn">🔮 Predict My Performance</button>
+        </form>
+
+        <div class="loader" id="loader">⏳ Analyzing your data...</div>
+        <div class="result" id="result"></div>
+    </div>
+
+    <script>
+        const form = document.getElementById('performanceForm');
+        const resultDiv = document.getElementById('result');
+        const loader = document.getElementById('loader');
+        const submitBtn = document.getElementById('submitBtn');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            // Show loader and disable button
+            loader.classList.add('show');
+            resultDiv.classList.remove('show');
+            submitBtn.disabled = true;
+
+            const data = {
+                hours_studied: parseFloat(document.getElementById('hours_studied').value),
+                previous_scores: parseFloat(document.getElementById('previous_scores').value),
+                extracurricular: document.getElementById('extracurricular').value === 'true',
+                sleep_hours: parseFloat(document.getElementById('sleep_hours').value),
+                sample_papers: parseInt(document.getElementById('sample_papers').value)
+            };
+
+            try {
+                const response = await fetch('/api/predict/', {  
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+                
+                // Hide loader
+                loader.classList.remove('show');
+                submitBtn.disabled = false;
+
+                // Clear previous styling
+                resultDiv.className = 'result show';
+
+                // Handle different response types
+                if (result.status === 'success' && result.classification === 'human') {
+                    // Success case - show prediction
+                    resultDiv.classList.add('result-success');
+                    resultDiv.innerHTML = `
+                        <div class="result-title">✅ Valid Human Data</div>
+                        <div class="prediction-value">
+                            Predicted Performance Index: ${result.predicted_performance_index}
+                        </div>
+                        <div class="result-reason">📊 ${result.reason}</div>
+                    `;
+                } 
+                else if (result.classification === 'unrealistic') {
+                    // Unrealistic data
+                    resultDiv.classList.add('result-warning');
+                    resultDiv.innerHTML = `
+                        <div class="result-title">⚠️ Unrealistic Data Detected</div>
+                        <p>${result.message}</p>
+                        <div class="result-reason">Reason: ${result.reason}</div>
+                    `;
+                }
+                else if (result.classification === 'suspicious') {
+                    // Suspicious pattern
+                    resultDiv.classList.add('result-info');
+                    resultDiv.innerHTML = `
+                        <div class="result-title">🤖 Suspicious Pattern Detected</div>
+                        <p>${result.message}</p>
+                        <div class="result-reason">Details: ${result.reason}</div>
+                    `;
+                }
+                else if (result.classification === 'invalid') {
+                    // Invalid data
+                    resultDiv.classList.add('result-error');
+                    resultDiv.innerHTML = `
+                        <div class="result-title">❌ Invalid Input</div>
+                        <p>${result.message}</p>
+                        <div class="result-reason">${result.reason}</div>
+                    `;
+                }
+                else if (result.error) {
+                    // General error
+                    resultDiv.classList.add('result-error');
+                    resultDiv.innerHTML = `
+                        <div class="result-title">❌ Error</div>
+                        <p>${result.error}</p>
+                    `;
+                }
+                else {
+                    // Unknown response
+                    resultDiv.classList.add('result-error');
+                    resultDiv.innerHTML = `
+                        <div class="result-title">❌ Unexpected Response</div>
+                        <p>An unexpected error occurred. Please try again.</p>
+                    `;
+                }
+            } catch (err) {
+                loader.classList.remove('show');
+                submitBtn.disabled = false;
+                resultDiv.className = 'result show result-error';
+                resultDiv.innerHTML = `
+                    <div class="result-title">❌ Network Error</div>
+                    <p>Unable to connect to the server: ${err.message}</p>
+                `;
+            }
+        });
+
+        // Helper function to get CSRF token
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+    </script>
+</body>
+</html>
