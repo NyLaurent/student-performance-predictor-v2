@@ -1,0 +1,8 @@
+*.pyc
+__pycache__/
+*.pkl
+.venv/
+db.sqlite3
+.DS_Store
+config.bat
+node_modules
